@@ -260,7 +260,13 @@ module Async
 					end
 				ensure
 					@gardener = nil
-					self.close
+					
+					# During cancellation, busy resources will never be released,
+					# so force-retire everything instead of draining gracefully.
+					while (resource, _usage = @resources.first)
+						retire(resource)
+					end
+					@available.clear
 				end
 			end
 			
